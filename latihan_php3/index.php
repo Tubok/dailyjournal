@@ -135,39 +135,90 @@ include "koneksi.php";
     </section>
     <!-- article end -->
     <!-- gallery begin -->
-    <section id="gallery" class="text-center p-5 bg-danger-subtle">
+     <section id="gallery" class="text-center p-5 bg-danger-subtle">
       <div class="container">
         <h1 class="fw-bold display-4 pb-3">gallery</h1>
-        <div id="carouselExample" class="carousel slide">
-          <div class="carousel-inner">
-            <div class="carousel-item active">
-              <img src="img/keg1.jpg" class="d-block w-100" alt="..." />
-            </div>
-            <div class="carousel-item">
-              <img src="img/keg3.jpg" class="d-block w-100" alt="..." />
-            </div>
-            <div class="carousel-item">
-              <img src="img/keg4.jpg" class="d-block w-100" alt="..." />
-            </div>
-            <div class="carousel-item">
-              <img src="img/keg1.jpg" class="d-block w-100" alt="..." />
-            </div>
+        <div id="carouselExample" class="carousel slide" data-bs-ride="carousel">
+          <?php
+          // Query untuk mengambil data gallery dari database
+          $sql_gallery = "SELECT * FROM gallery ORDER BY tanggal DESC";
+          $hasil_gallery = $conn->query($sql_gallery);
+          
+          // Simpan data ke array untuk digunakan 2 kali
+          $gallery_data = array();
+          if ($hasil_gallery->num_rows > 0) {
+              while ($row = $hasil_gallery->fetch_assoc()) {
+                  $gallery_data[] = $row;
+              }
+          }
+          ?>
+          
+          <!-- Carousel Indicators -->
+          <?php if (count($gallery_data) > 0) { ?>
+          <div class="carousel-indicators">
+            <?php for ($i = 0; $i < count($gallery_data); $i++) { ?>
+              <button type="button" data-bs-target="#carouselExample" data-bs-slide-to="<?= $i ?>" 
+                      class="<?= $i == 0 ? 'active' : '' ?>" aria-current="<?= $i == 0 ? 'true' : 'false' ?>" 
+                      aria-label="Slide <?= $i + 1 ?>"></button>
+            <?php } ?>
           </div>
-          <button
-            class="carousel-control-prev"
-            type="button"
-            data-bs-target="#carouselExample"
-            data-bs-slide="prev"
-          >
+          <?php } ?>
+          
+          <!-- Carousel Inner -->
+          <div class="carousel-inner">
+            <?php
+            if (count($gallery_data) > 0) {
+                $first = true;
+                foreach ($gallery_data as $row_gallery) {
+                    $active_class = $first ? 'active' : '';
+                    $first = false;
+            ?>
+            <div class="carousel-item <?= $active_class ?>">
+              <?php if ($row_gallery["gambar"] != '' && file_exists('img/' . $row_gallery["gambar"])) { ?>
+                <img src="img/<?= $row_gallery["gambar"] ?>" class="d-block w-100" alt="<?= htmlspecialchars($row_gallery["judul"]) ?>" 
+                     style="max-height: 500px; object-fit: cover;">
+              <?php } else { ?>
+                <img src="https://via.placeholder.com/1200x500/ff6b6b/ffffff?text=No+Image" class="d-block w-100" alt="No Image" 
+                     style="max-height: 500px; object-fit: cover;">
+              <?php } ?>
+              
+              <!-- Caption dengan judul dan deskripsi -->
+              <div class="carousel-caption d-none d-md-block">
+                <div class="bg-dark bg-opacity-75 rounded p-3">
+                  <h5 class="fw-bold"><?= htmlspecialchars($row_gallery["judul"]) ?></h5>
+                  <?php if (!empty($row_gallery["deskripsi"])) { ?>
+                    <p class="mb-0"><?= htmlspecialchars($row_gallery["deskripsi"]) ?></p>
+                  <?php } ?>
+                  <small class="text-white-50">oleh: <?= htmlspecialchars($row_gallery["username"]) ?> | <?= date('d M Y', strtotime($row_gallery["tanggal"])) ?></small>
+                </div>
+              </div>
+            </div>
+            <?php
+                }
+            } else {
+                // Jika tidak ada data gallery, tampilkan pesan
+            ?>
+            <div class="carousel-item active">
+              <img src="https://via.placeholder.com/1200x500/dee2e6/6c757d?text=Belum+Ada+Gallery" 
+                   class="d-block w-100" alt="No Gallery" style="max-height: 500px; object-fit: cover;">
+              <div class="carousel-caption d-none d-md-block">
+                <div class="bg-dark bg-opacity-75 rounded p-3">
+                  <h5 class="fw-bold">Belum Ada Gallery</h5>
+                  <p>Silakan tambahkan gallery melalui halaman admin</p>
+                </div>
+              </div>
+            </div>
+            <?php
+            }
+            ?>
+          </div>
+          
+          <!-- Carousel Controls -->
+          <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
             <span class="carousel-control-prev-icon" aria-hidden="true"></span>
             <span class="visually-hidden">Previous</span>
           </button>
-          <button
-            class="carousel-control-next"
-            type="button"
-            data-bs-target="#carouselExample"
-            data-bs-slide="next"
-          >
+          <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
             <span class="carousel-control-next-icon" aria-hidden="true"></span>
             <span class="visually-hidden">Next</span>
           </button>
